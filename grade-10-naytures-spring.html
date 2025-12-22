@@ -41,11 +41,15 @@
     });
   });
 
+  let currentPicker = ""; // store name entered
+
   // Enter your name
   window.enterName = function() {
     const nameInput = document.getElementById('nameInput');
     const name = nameInput.value.trim();
     if(!name) return alert("Enter your name first!");
+
+    currentPicker = name; // remember for picking
 
     // Add to entered list
     const enteredRef = ref(database, 'entered');
@@ -59,7 +63,7 @@
       }
     });
 
-    nameInput.value = ''; // clear input
+    nameInput.value = ''; // clear input box
   }
 
   // Listen for entered names
@@ -72,20 +76,19 @@
 
   // Pick a random name
   window.pickName = function() {
-    const picker = document.getElementById('nameInput').value.trim();
-    if(!picker) return alert("Enter your name first to pick someone!");
+    if(!currentPicker) return alert("Enter your name first to pick someone!");
 
     get(namesRef).then(snapshot => {
       const allNames = snapshot.val() || {};
-      const available = Object.keys(allNames).filter(n => !allNames[n].picked && n !== picker);
+      const available = Object.keys(allNames).filter(n => !allNames[n].picked && n !== currentPicker);
       if(available.length === 0) return alert("All names have been picked!");
 
       const randomName = available[Math.floor(Math.random() * available.length)];
 
       // Mark as picked
-      update(ref(database, 'names/' + randomName), { picked: true, pickedBy: picker });
+      update(ref(database, 'names/' + randomName), { picked: true, pickedBy: currentPicker });
 
-      alert(`${picker}, you got: ${randomName}`);
+      alert(`${currentPicker}, you got: ${randomName}`);
     });
   }
 </script>
