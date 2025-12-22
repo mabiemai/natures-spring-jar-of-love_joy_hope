@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade 10 Nature's Spring</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #7b0d1e;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+h1 { text-align: center; font-size: 24px; }
+.container { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1000px; margin: auto; }
+.box { background: rgba(255,255,255,0.15); padding: 20px; border-radius: 15px; flex: 1 1 300px; }
+input { width: 95%; padding: 10px; border-radius: 8px; border: none; margin-bottom: 10px; }
+button { padding: 12px 20px; border: none; border-radius: 10px; font-size: 16px; background: gold; cursor: pointer; width: 100%; margin-top: 5px; }
+button:hover { background: #ffeb80; }
+ul { list-style: none; padding-left: 0; }
+.message { color: #ffff99; margin: 10px 0; }
+.result { font-size: 22px; margin-top: 20px; font-weight: bold; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>🎁 Grade 10 Nature's Spring - Manito & Manita Jar 🎄</h1>
+
+<div class="container">
+
+    <!-- ENTER NAME -->
+    <div class="box">
+        <h3>Enter Your Name</h3>
+        <form id="nameForm">
+            <input type="text" id="username" placeholder="Type your name exactly">
+            <button type="submit">Enter</button>
+        </form>
+        <div class="message" id="enterMessage"></div>
+
+        <h3 style="margin-top:20px;">Already Entered</h3>
+        <ul id="enteredList"></ul>
+
+        <button onclick="resetJar()" style="background:red; margin-top:20px;">🔄 Reset Jar</button>
+        <div class="message" id="resetMessage"></div>
+    </div>
+
+    <!-- JAR -->
+    <div class="box">
+        <h3>The Jar</h3>
+        <button onclick="pickName()">🎁 Pick from the Jar</button>
+        <div class="message" id="pickMessage"></div>
+        <div class="result" id="result"></div>
+    </div>
+
+</div>
+
+<script>
+// 🔹 OFFICIAL LIST
+let allNames = [
+    "aboyo","sese","clarido","ofamin","baron",
+    "maru","magallanes","yngson","santillan","gamboa",
+    "ma'am thess","robles","panaligan","gonzales","olvido",
+    "de los reyes","tamayo","doromal","chua","alon"
+];
+
+// Initialize
+let remainingNames = [...allNames];
+let enteredUsers = [];
+let pickedUsers = [];
+let currentUser = null;
+
+// Handle form submission (works on mobile and desktop)
+document.getElementById("nameForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // Prevent page refresh
+    enterSite();
+});
+
+function enterSite() {
+    let nameInput = document.getElementById("username");
+    let name = nameInput.value.trim().toLowerCase();
+    let enterMsg = document.getElementById("enterMessage");
+    let pickMsg = document.getElementById("pickMessage");
+    pickMsg.textContent = "";
+
+    if (name === "") { enterMsg.textContent = "Please enter your name."; return; }
+    if (!allNames.includes(name)) { enterMsg.textContent = "Name not found in the official list."; return; }
+    if (enteredUsers.includes(name)) { enterMsg.textContent = "This name has already entered."; return; }
+
+    enteredUsers.push(name);
+    currentUser = name;
+    updateEnteredList();
+    enterMsg.textContent = "✅ You may now pick from the jar!";
+    nameInput.value = "";
+}
+
+function pickName() {
+    let pickMsg = document.getElementById("pickMessage");
+    let result = document.getElementById("result");
+    pickMsg.textContent = "";
+    result.textContent = "";
+
+    if (!currentUser) { pickMsg.textContent = "Enter your name first."; return; }
+    if (pickedUsers.includes(currentUser)) { pickMsg.textContent = "You already picked."; return; }
+    if (remainingNames.length === 0) { pickMsg.textContent = "All names have been picked."; return; }
+
+    let randomIndex = Math.floor(Math.random() * remainingNames.length);
+    let picked = remainingNames[randomIndex];
+    remainingNames.splice(randomIndex,1);
+
+    pickedUsers.push(currentUser);
+    result.textContent = "🎉 Your Manito/Manita is: " + picked;
+}
+
+function updateEnteredList() {
+    let list = document.getElementById("enteredList");
+    list.innerHTML = "";
+    enteredUsers.forEach(name => {
+        let li = document.createElement("li");
+        li.textContent = "✔ " + name;
+        list.appendChild(li);
+    });
+}
+
+function resetJar() {
+    remainingNames = [...allNames];
+    enteredUsers = [];
+    pickedUsers = [];
+    currentUser = null;
+    document.getElementById("enteredList").innerHTML = "";
+    document.getElementById("result").textContent = "";
+    document.getElementById("enterMessage").textContent = "";
+    document.getElementById("pickMessage").textContent = "";
+    document.getElementById("resetMessage").textContent = "✅ Jar has been reset!";
+}
+</script>
+
+</body>
+</html>
