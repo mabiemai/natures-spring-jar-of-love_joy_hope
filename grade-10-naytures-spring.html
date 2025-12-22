@@ -1,145 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade 10 Nature's Spring</title>
+<title>Grade 10 Nature's Spring - Manito & Manita</title>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyD52hVtU6Jr48S0TNRrgpgsbtsdxy1BP5U",
+    authDomain: "natures-spring-f1241.firebaseapp.com",
+    databaseURL: "https://natures-spring-f1241-default-rtdb.firebaseio.com",
+    projectId: "natures-spring-f1241",
+    storageBucket: "natures-spring-f1241.appspot.com",
+    messagingSenderId: "1032574991274",
+    appId: "1:1032574991274:web:b870cfd7f166cfa312c9d3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  // Function to enter a name
+  window.enterName = function() {
+    const nameInput = document.getElementById('nameInput');
+    const name = nameInput.value.trim();
+    if(!name) return alert("Enter your name first!");
+    
+    const enteredRef = ref(database, 'entered');
+    push(enteredRef, name);
+
+    // Add name to names pool if not exists
+    const nameRef = ref(database, 'names/' + name);
+    get(nameRef).then(snapshot => {
+      if(!snapshot.exists()) {
+        update(nameRef, { picked: false, pickedBy: "" });
+      }
+    });
+
+    nameInput.value = '';
+  }
+
+  // Listen for entered names
+  const enteredDiv = document.getElementById('enteredList');
+  const enteredRef = ref(database, 'entered');
+  onValue(enteredRef, snapshot => {
+    const data = snapshot.val() || {};
+    enteredDiv.innerHTML = Object.values(data).join('<br>');
+  });
+
+  // Pick a random name
+  window.pickName = function() {
+    const picker = prompt("Enter your name again to pick someone:").trim();
+    if(!picker) return;
+
+    const namesRef = ref(database, 'names');
+    get(namesRef).then(snapshot => {
+      const allNames = snapshot.val() || {};
+      const available = Object.keys(allNames).filter(n => !allNames[n].picked && n !== picker);
+      if(available.length === 0) return alert("All names have been picked!");
+
+      const randomName = available[Math.floor(Math.random() * available.length)];
+
+      // Mark as picked
+      update(ref(database, 'names/' + randomName), { picked: true, pickedBy: picker });
+
+      alert(`${picker}, you got: ${randomName}`);
+    });
+  }
+</script>
+
 <style>
-body {
+  body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-        url('background.jpg') no-repeat center center fixed;
-    background-size: cover;
-    color: white;
     margin: 0;
     padding: 20px;
-}
-h1 { text-align: center; font-size: 24px; }
-.container { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1000px; margin: auto; }
-.box { background: rgba(255,255,255,0.15); padding: 20px; border-radius: 15px; flex: 1 1 300px; }
-input { width: 95%; padding: 10px; border-radius: 8px; border: none; margin-bottom: 10px; }
-button { padding: 12px 20px; border: none; border-radius: 10px; font-size: 16px; background: gold; cursor: pointer; width: 100%; margin-top: 5px; }
-button:hover { background: #ffeb80; }
-ul { list-style: none; padding-left: 0; }
-.message { color: #ffff99; margin: 10px 0; }
-.result { font-size: 22px; margin-top: 20px; font-weight: bold; text-align: center; }
+    color: #fff;
+    background: 
+      linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+      url('natures-spring-3.png') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  h1 { margin-bottom: 20px; text-align: center; }
+  input { padding: 10px; font-size: 16px; margin-right: 10px; width: 200px; }
+  button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; }
+  #enteredList { margin-top: 20px; font-size: 18px; text-align: center; }
 </style>
 </head>
+
 <body>
+<h1>Grade 10 Nature's Spring - Manito & Manita</h1>
 
-<h1>🎁 Grade 10 Nature's Spring - Manito & Manita Jar 🎄</h1>
-
-<div class="container">
-
-    <!-- ENTER NAME -->
-    <div class="box">
-        <h3>Enter Your Name</h3>
-        <form id="nameForm">
-            <input type="text" id="username" placeholder="Type your name exactly">
-            <button type="submit">Enter</button>
-        </form>
-        <div class="message" id="enterMessage"></div>
-
-        <h3 style="margin-top:20px;">Already Entered</h3>
-        <ul id="enteredList"></ul>
-
-        <button onclick="resetJar()" style="background:red; margin-top:20px;">🔄 Reset Jar</button>
-        <div class="message" id="resetMessage"></div>
-    </div>
-
-    <!-- JAR -->
-    <div class="box">
-        <h3>The Jar</h3>
-        <button onclick="pickName()">🎁 Pick from the Jar</button>
-        <div class="message" id="pickMessage"></div>
-        <div class="result" id="result"></div>
-    </div>
-
+<div>
+  <input type="text" id="nameInput" placeholder="Enter your name">
+  <button onclick="enterName()">Enter</button>
 </div>
 
-<script>
-// 🔹 OFFICIAL LIST
-let allNames = [
-    "aboyo","sese","clarido","ofamin","baron",
-    "maru","magallanes","yngson","santillan","gamboa",
-    "ma'am thess","robles","panaligan","gonzales","olvido",
-    "de los reyes","tamayo","doromal","chua","alon"
-];
+<div>
+  <button onclick="pickName()">Pick from Jar</button>
+</div>
 
-// Initialize
-let remainingNames = [...allNames];
-let enteredUsers = [];
-let pickedUsers = [];
-let currentUser = null;
-
-// Handle form submission (works on mobile and desktop)
-document.getElementById("nameForm").addEventListener("submit", function(e) {
-    e.preventDefault(); // Prevent page refresh
-    enterSite();
-});
-
-function enterSite() {
-    let nameInput = document.getElementById("username");
-    let name = nameInput.value.trim().toLowerCase();
-    let enterMsg = document.getElementById("enterMessage");
-    let pickMsg = document.getElementById("pickMessage");
-    pickMsg.textContent = "";
-
-    if (name === "") { enterMsg.textContent = "Please enter your name."; return; }
-    if (!allNames.includes(name)) { enterMsg.textContent = "Name not found in the official list."; return; }
-    if (enteredUsers.includes(name)) { enterMsg.textContent = "This name has already entered."; return; }
-
-    enteredUsers.push(name);
-    currentUser = name;
-    updateEnteredList();
-    enterMsg.textContent = "✅ You may now pick from the jar!";
-    nameInput.value = "";
-}
-
-function pickName() {
-    let pickMsg = document.getElementById("pickMessage");
-    let result = document.getElementById("result");
-    pickMsg.textContent = "";
-    result.textContent = "";
-
-    if (!currentUser) { pickMsg.textContent = "Enter your name first."; return; }
-    if (pickedUsers.includes(currentUser)) { pickMsg.textContent = "You already picked."; return; }
-    if (remainingNames.length === 0) { pickMsg.textContent = "All names have been picked."; return; }
-
-    let randomIndex = Math.floor(Math.random() * remainingNames.length);
-    let picked = remainingNames[randomIndex];
-    remainingNames.splice(randomIndex,1);
-
-    pickedUsers.push(currentUser);
-    result.textContent = "🎉 Your Manito/Manita is: " + picked;
-}
-
-function updateEnteredList() {
-    let list = document.getElementById("enteredList");
-    list.innerHTML = "";
-    enteredUsers.forEach(name => {
-        let li = document.createElement("li");
-        li.textContent = "✔ " + name;
-        list.appendChild(li);
-    });
-}
-
-function resetJar() {
-    remainingNames = [...allNames];
-    enteredUsers = [];
-    pickedUsers = [];
-    currentUser = null;
-    document.getElementById("enteredList").innerHTML = "";
-    document.getElementById("result").textContent = "";
-    document.getElementById("enterMessage").textContent = "";
-    document.getElementById("pickMessage").textContent = "";
-    document.getElementById("resetMessage").textContent = "✅ Jar has been reset!";
-}
-</script>
+<h3>Already Entered:</h3>
+<div id="enteredList"></div>
 
 </body>
 </html>
-
-
-
-
