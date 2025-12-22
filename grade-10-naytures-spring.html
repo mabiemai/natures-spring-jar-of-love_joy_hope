@@ -24,16 +24,34 @@
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
 
-  // Function to enter a name
+  // Predefined names
+  const predefinedNames = [
+    "aboyo","montebano","magallanes","maru","clarido",
+    "olvido","de los reyes","panaligan","alon","ma'am thess"
+  ];
+
+  // Initialize predefined names in database if not exists
+  const namesRef = ref(database, 'names');
+  get(namesRef).then(snapshot => {
+    const allNames = snapshot.val() || {};
+    predefinedNames.forEach(n => {
+      if(!allNames[n]) {
+        update(ref(database, 'names/' + n), { picked: false, pickedBy: "" });
+      }
+    });
+  });
+
+  // Enter your name
   window.enterName = function() {
     const nameInput = document.getElementById('nameInput');
     const name = nameInput.value.trim();
     if(!name) return alert("Enter your name first!");
-    
+
+    // Add to entered list
     const enteredRef = ref(database, 'entered');
     push(enteredRef, name);
 
-    // Add name to names pool if not exists
+    // Add to names pool if not exists
     const nameRef = ref(database, 'names/' + name);
     get(nameRef).then(snapshot => {
       if(!snapshot.exists()) {
@@ -41,7 +59,7 @@
       }
     });
 
-    nameInput.value = '';
+    nameInput.value = ''; // clear input
   }
 
   // Listen for entered names
@@ -54,10 +72,9 @@
 
   // Pick a random name
   window.pickName = function() {
-    const picker = prompt("Enter your name again to pick someone:").trim();
-    if(!picker) return;
+    const picker = document.getElementById('nameInput').value.trim();
+    if(!picker) return alert("Enter your name first to pick someone!");
 
-    const namesRef = ref(database, 'names');
     get(namesRef).then(snapshot => {
       const allNames = snapshot.val() || {};
       const available = Object.keys(allNames).filter(n => !allNames[n].picked && n !== picker);
