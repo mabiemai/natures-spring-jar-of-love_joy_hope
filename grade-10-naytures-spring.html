@@ -1,177 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade 10 Nature’s Spring – Claw Machine</title>
-
-<style>
-  body {
-    background: #5a0000;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
-  }
-
-  .container {
-    max-width: 420px;
-    margin: auto;
-    background: rgba(0,0,0,0.35);
-    padding: 20px;
-    border-radius: 15px;
-  }
-
-  input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-    margin-bottom: 10px;
-  }
-
-  /* 🎮 Claw machine */
-  .machine {
-    position: relative;
-    width: 100%;
-    height: 300px;
-    background: #222;
-    border-radius: 15px;
-    margin-top: 15px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-
-  .claw {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 40px;
-    transition: top 1s ease;
-  }
-
-  .claw.drop {
-    top: 170px;
-  }
-
-  .jar {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 40px;
-    transition: transform 0.5s;
-  }
-
-  .jar.shake {
-    animation: shake 0.5s infinite;
-  }
-
-  @keyframes shake {
-    0% { transform: translateX(-50%) rotate(0); }
-    25% { transform: translateX(-50%) rotate(5deg); }
-    50% { transform: translateX(-50%) rotate(-5deg); }
-    75% { transform: translateX(-50%) rotate(5deg); }
-    100% { transform: translateX(-50%) rotate(0); }
-  }
-
-  #result {
-    margin-top: 15px;
-    font-size: 22px;
-    font-weight: bold;
-  }
-
-  .hint {
-    font-size: 14px;
-    opacity: 0.8;
-  }
-</style>
-</head>
-
-<body>
-
-<div class="container">
-  <h1>🕹️ Manito–Manita Claw Machine</h1>
-  <p>Enter your name, then tap the machine</p>
-
- <input type="text" id="nameInput" placeholder="Enter your name">
-<button onclick="enterName()">Enter Name</button>
-
-  <div class="machine" onclick="activateClaw()">
-    <div class="claw" id="claw">🦾</div>
-    <div class="jar" id="jar">🫙</div>
-  </div>
-
-  <p class="hint">Tap the machine to grab a jar 🎁</p>
-  <div id="result"></div>
-</div>
-
 <script>
-  // Fixed pairs (NO randomness)
-  const pairs = {
-    "Montebano": "Maru",
-    "Doromal": "Panaligan",
-    "Maru": "Clarido",
-    "Chua": "Magallanes",
-    "Olvido": "Doromal",
-    "Magallanes": "Alon",
-    "Delos Reyes": "Montebano",
-    "Aboyo": "Delos Reyes",
-    "Alon": "Chua",
-    "Clarido": "Olvido",
-    "Panaligan": "Aboyo"
-  };
-  let currentUser = "";
-  let busy = false;
+let passwords = {
+    "montebano": "Montebano",
+    "maru": "Maru",
+    "doromal": "Doromal",
+    "panaligan": "Panaligan",
+    "clarido": "Clarido",
+    "chua": "Chua",
+    "magallanes": "Magallanes",
+    "olvido": "Olvido",
+    "delosreyes": "Delos Reyes",
+    "aboyo": "Aboyo",
+    "alon": "Alon"
+};
 
-  function enterName() {
-    const input = document.getElementById("nameInput").value.trim();
-    const result = document.getElementById("result");
+let names = JSON.parse(localStorage.getItem("remainingNames")) || [
+    "Montebano",
+    "Maru",
+    "Doromal",
+    "Panaligan",
+    "Clarido",
+    "Chua",
+    "Magallanes",
+    "Olvido",
+    "Delos Reyes",
+    "Aboyo",
+    "Alon"
+];
 
-    if (!input) {
-      result.textContent = "❗ Please enter your name.";
-      return;
+if (localStorage.getItem("alreadyPicked")) {
+    document.getElementById("result").innerText =
+        "You already picked on this device.";
+}
+
+function pick() {
+    let pass = document.getElementById("password").value.toLowerCase();
+
+    if (localStorage.getItem("alreadyPicked")) {
+        document.getElementById("result").innerText =
+            "Only one pick allowed per device.";
+        return;
     }
 
-    if (!pairs[input]) {
-      result.textContent = "❌ Name not found. Check spelling.";
-      return;
+    if (!passwords[pass]) {
+        document.getElementById("result").innerText =
+            "Invalid password.";
+        return;
     }
 
-    currentUser = input;
-    result.textContent = `✅ Hi ${input}! Tap the machine to pick your jar 🎁`;
-  }
-
-  function activateClaw() {
-    if (busy || !currentUser) {
-      document.getElementById("result").textContent =
-        "❗ Enter your name first.";
-      return;
+    if (names.length === 0) {
+        document.getElementById("result").innerText =
+            "All names are taken.";
+        return;
     }
 
-    const claw = document.getElementById("claw");
-    const jar = document.getElementById("jar");
-    const result = document.getElementById("result");
+    let randomIndex = Math.floor(Math.random() * names.length);
+    let picked = names[randomIndex];
 
-    busy = true;
-    result.textContent = "";
+    names.splice(randomIndex, 1);
 
-    claw.classList.add("drop");
+    localStorage.setItem("remainingNames", JSON.stringify(names));
+    localStorage.setItem("alreadyPicked", "true");
 
-    setTimeout(() => {
-      jar.classList.add("shake");
-    }, 900);
-
-    setTimeout(() => {
-      jar.classList.remove("shake");
-      claw.classList.remove("drop");
-      result.textContent = `🎁 You got: ${pairs[currentUser]}`;
-      busy = false;
-    }, 2000);
-  }
+    document.getElementById("result").innerText =
+        "🎉 Your Manito/Manita is: " + picked;
+}
 </script>
-
-  let busy = false;
-
