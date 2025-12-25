@@ -96,7 +96,8 @@
   <h1>🕹️ Manito–Manita Claw Machine</h1>
   <p>Enter your name, then tap the machine</p>
 
-  <input type="text" id="nameInput" placeholder="Enter your name">
+ <input type="text" id="nameInput" placeholder="Enter your name">
+<button onclick="enterName()">Enter Name</button>
 
   <div class="machine" onclick="activateClaw()">
     <div class="claw" id="claw">🦾</div>
@@ -122,5 +123,55 @@
     "Clarido": "Olvido",
     "Panaligan": "Aboyo"
   };
+  let currentUser = "";
+  let busy = false;
+
+  function enterName() {
+    const input = document.getElementById("nameInput").value.trim();
+    const result = document.getElementById("result");
+
+    if (!input) {
+      result.textContent = "❗ Please enter your name.";
+      return;
+    }
+
+    if (!pairs[input]) {
+      result.textContent = "❌ Name not found. Check spelling.";
+      return;
+    }
+
+    currentUser = input;
+    result.textContent = `✅ Hi ${input}! Tap the machine to pick your jar 🎁`;
+  }
+
+  function activateClaw() {
+    if (busy || !currentUser) {
+      document.getElementById("result").textContent =
+        "❗ Enter your name first.";
+      return;
+    }
+
+    const claw = document.getElementById("claw");
+    const jar = document.getElementById("jar");
+    const result = document.getElementById("result");
+
+    busy = true;
+    result.textContent = "";
+
+    claw.classList.add("drop");
+
+    setTimeout(() => {
+      jar.classList.add("shake");
+    }, 900);
+
+    setTimeout(() => {
+      jar.classList.remove("shake");
+      claw.classList.remove("drop");
+      result.textContent = `🎁 You got: ${pairs[currentUser]}`;
+      busy = false;
+    }, 2000);
+  }
+</script>
 
   let busy = false;
+
