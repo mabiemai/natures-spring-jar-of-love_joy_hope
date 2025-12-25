@@ -3,133 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade 10 Nature's Spring - Manito & Manita</title>
-
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyD52hVtU6Jr48S0TNRrgpgsbtsdxy1BP5U",
-    authDomain: "natures-spring-f1241.firebaseapp.com",
-    databaseURL: "https://natures-spring-f1241-default-rtdb.firebaseio.com",
-    projectId: "natures-spring-f1241",
-    storageBucket: "natures-spring-f1241.appspot.com",
-    messagingSenderId: "1032574991274",
-    appId: "1:1032574991274:web:b870cfd7f166cfa312c9d3"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-
-  // Predefined names
-  const predefinedNames = [
-    "aboyo","montebano","magallanes","maru","clarido",
-    "olvido","de los reyes","panaligan","alon","ma'am thess"
-  ];
-
-  // Initialize predefined names in database if not exists
-  const namesRef = ref(database, 'names');
-  get(namesRef).then(snapshot => {
-    const allNames = snapshot.val() || {};
-    predefinedNames.forEach(n => {
-      if(!allNames[n]) {
-        update(ref(database, 'names/' + n), { picked: false, pickedBy: "" });
-      }
-    });
-  });
-
-  let currentPicker = ""; // store name entered
-
-  // Enter your name
-  window.enterName = function() {
-    const nameInput = document.getElementById('nameInput');
-    const name = nameInput.value.trim();
-    if(!name) return alert("Enter your name first!");
-
-    currentPicker = name; // remember for picking
-
-    // Add to entered list
-    const enteredRef = ref(database, 'entered');
-    push(enteredRef, name);
-
-    // Add to names pool if not exists
-    const nameRef = ref(database, 'names/' + name);
-    get(nameRef).then(snapshot => {
-      if(!snapshot.exists()) {
-        update(nameRef, { picked: false, pickedBy: "" });
-      }
-    });
-
-    nameInput.value = ''; // clear input box
-  }
-
-  // Listen for entered names
-  const enteredDiv = document.getElementById('enteredList');
-  const enteredRef = ref(database, 'entered');
-  onValue(enteredRef, snapshot => {
-    const data = snapshot.val() || {};
-    enteredDiv.innerHTML = Object.values(data).join('<br>');
-  });
-
-  // Pick a random name
-  window.pickName = function() {
-    if(!currentPicker) return alert("Enter your name first to pick someone!");
-
-    get(namesRef).then(snapshot => {
-      const allNames = snapshot.val() || {};
-      const available = Object.keys(allNames).filter(n => !allNames[n].picked && n !== currentPicker);
-      if(available.length === 0) return alert("All names have been picked!");
-
-      const randomName = available[Math.floor(Math.random() * available.length)];
-
-      // Mark as picked
-      update(ref(database, 'names/' + randomName), { picked: true, pickedBy: currentPicker });
-
-      alert(`${currentPicker}, you got: ${randomName}`);
-    });
-  }
-</script>
+<title>Grade 10 Nature’s Spring – Claw Machine</title>
 
 <style>
   body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
+    background: #5a0000;
     color: #fff;
-    background: 
-      linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
-      url('natures-spring-3.png') no-repeat center center fixed;
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
   }
 
-  h1 { margin-bottom: 20px; text-align: center; }
-  input { padding: 10px; font-size: 16px; margin-right: 10px; width: 200px; }
-  button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; }
-  #enteredList { margin-top: 20px; font-size: 18px; text-align: center; }
+  .container {
+    max-width: 420px;
+    margin: auto;
+    background: rgba(0,0,0,0.35);
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  /* 🎮 Claw machine */
+  .machine {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: #222;
+    border-radius: 15px;
+    margin-top: 15px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .claw {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+    transition: top 1s ease;
+  }
+
+  .claw.drop {
+    top: 170px;
+  }
+
+  .jar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+    transition: transform 0.5s;
+  }
+
+  .jar.shake {
+    animation: shake 0.5s infinite;
+  }
+
+  @keyframes shake {
+    0% { transform: translateX(-50%) rotate(0); }
+    25% { transform: translateX(-50%) rotate(5deg); }
+    50% { transform: translateX(-50%) rotate(-5deg); }
+    75% { transform: translateX(-50%) rotate(5deg); }
+    100% { transform: translateX(-50%) rotate(0); }
+  }
+
+  #result {
+    margin-top: 15px;
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  .hint {
+    font-size: 14px;
+    opacity: 0.8;
+  }
 </style>
 </head>
 
 <body>
-<h1>Grade 10 Nature's Spring - Manito & Manita</h1>
 
-<div>
+<div class="container">
+  <h1>🕹️ Manito–Manita Claw Machine</h1>
+  <p>Enter your name, then tap the machine</p>
+
   <input type="text" id="nameInput" placeholder="Enter your name">
-  <button onclick="enterName()">Enter</button>
+
+  <div class="machine" onclick="activateClaw()">
+    <div class="claw" id="claw">🦾</div>
+    <div class="jar" id="jar">🫙</div>
+  </div>
+
+  <p class="hint">Tap the machine to grab a jar 🎁</p>
+  <div id="result"></div>
 </div>
 
-<div>
-  <button onclick="pickName()">Pick from Jar</button>
-</div>
+<script>
+  // Fixed pairs (NO randomness)
+  const pairs = {
+    "Montebano": "Maru",
+    "Doromal": "Panaligan",
+    "Maru": "Clarido",
+    "Chua": "Magallanes",
+    "Olvido": "Doromal",
+    "Magallanes": "Alon",
+    "Delos Reyes": "Montebano",
+    "Aboyo": "Delos Reyes",
+    "Alon": "Chua",
+    "Clarido": "Olvido",
+    "Panaligan": "Aboyo"
+  };
 
-<h3>Already Entered:</h3>
-<div id="enteredList"></div>
-
-</body>
-</html>
+  let busy = false;
